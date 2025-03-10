@@ -7,7 +7,7 @@ import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import { streamText } from "ai";
 import { tool } from "ai";
 import { models } from '@/ai/models';
-import { tools as langchainTools } from "@/ai/tools/index"
+import { tools as langchainTools } from "@/ai/tools"
 import { z } from "zod";
 
 export const maxDuration = 60;

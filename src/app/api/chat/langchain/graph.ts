@@ -5,7 +5,7 @@ import { Annotation, StateGraph, START, END, MessagesAnnotation } from '@langcha
 import { ChatPromptTemplate, MessagesPlaceholder } from '@langchain/core/prompts'
 import { ToolNode } from '@langchain/langgraph/prebuilt'
 import { getModelFromConfig} from '@/ai/utils'
-import { tools } from "@/ai/tools/index"
+import { tools } from "@/ai/tools"
 import { z } from "zod";
 
 const AgentState = Annotation.Root({

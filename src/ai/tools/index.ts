@@ -1,30 +1,27 @@
-import {z} from 'zod';
-import {tool, Tool} from '@langchain/core/tools';
-import {RunnableConfig} from '@langchain/core/runnables';
-
+import { getWeather} from './weather'
 import { firecrawlTool } from './firecrawl';
-// import { googlePlaces, calculator, duckDuckGoSearch } from './community-tools'
+import { StructuredTool, DynamicStructuredTool } from "@langchain/core/tools";
 
-const getWeather = tool(
-    async (input) => {
-    if (["sf", "san francisco"].includes(input.location.toLowerCase())) {
-      return "It's 60 degrees and foggy.";
-    } else {
-      return "It's 90 degrees and sunny.";
-    }
-    }, {
-    name: "get_weather",
-    description: "Call to get the current weather.",
-    schema: z.object({
-      location: z.string().describe("Location to get the weather for."),
-    }),
-    
-});
+// import { googlePlaces, calculator, duckDuckGoSearch } from './community-tools'
 
 export const tools = [
     getWeather,
-    // firecrawlTool,
+    firecrawlTool,
     // googlePlaces,
     // calculator,
     // duckDuckGoSearch(),
 ];
+
+interface ToolInfo {
+    index: number;
+    toolName: string;
+    description: string;
+}
+  
+export function getToolsInfo(): ToolInfo[] {
+    return tools.map((tool, index) => ({
+      index,
+      toolName: tool.name,
+      description: tool.description
+    }));
+}

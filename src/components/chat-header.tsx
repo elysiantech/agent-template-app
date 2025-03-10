@@ -1,27 +1,17 @@
 'use client'
 
 import { useRouter } from 'next/navigation';
-import { models } from '@/ai/models';
 import { Plus, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { saveModelId, saveSettingsAction } from '@/app/actions'
+import { saveModelId, saveSettingsAction, getModels,getAvailableToolsInfo } from '@/app/actions'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { Slider } from "@/components/ui/slider"
 import { Textarea } from "@/components/ui/textarea"
-import { set } from 'date-fns';
-
-
-const availableTools = [
-    { id: "web-search", name: "Web Search" },
-    { id: "code-interpreter", name: "Code Interpreter" },
-    { id: "image-generation", name: "Image Generation" },
-    { id: "data-analysis", name: "Data Analysis" },
-]
 
 export function ChatHeader({ selectedModelId, settings }: { selectedModelId: string, settings: Record<string, any> }) {
     const router = useRouter()
@@ -30,11 +20,12 @@ export function ChatHeader({ selectedModelId, settings }: { selectedModelId: str
     const [temperature, setTemperature] = useState(settings.temperature ?? 0.7)
     const [maxTokens, setMaxTokens] = useState(settings.maxTokens ?? 2000)
     const [maxSteps, setMaxSteps] = useState(settings.maxSteps ?? 5)
-    const [selectedTools, setSelectedTools] = useState<string[]>(settings.selectedTools ?? [])
+    const [selectedTools, setSelectedTools] = useState<number[]>(settings.selectedTools ?? [])
     const [displayToolMessages, setDisplayToolMessages] = useState(settings.displayToolMessages ?? true)
     const [langchain, setLangchain] = useState(settings.langchain ?? true)
-
-
+    const [availableTools, setAvailabeTools] = useState<any[]>([])
+    const [models, setModels] = useState<any[]>([])
+    
     const saveSettings = async () => {
         await saveSettingsAction({
           temperature,
@@ -49,6 +40,10 @@ export function ChatHeader({ selectedModelId, settings }: { selectedModelId: str
         // Optional: Show a success toast
     }
 
+    useEffect(() => {
+        getModels().then(setModels)
+        getAvailableToolsInfo().then(setAvailabeTools)
+    },[])
     const handleNewChat = () => {
         router.push('/');
         router.refresh();
@@ -150,20 +145,20 @@ export function ChatHeader({ selectedModelId, settings }: { selectedModelId: str
                                 <AccordionContent>
                                     <div className="space-y-2">
                                         {availableTools.map((tool) => (
-                                            <div key={tool.id} className="flex items-center space-x-2">
+                                            <div key={tool.index} className="flex items-center space-x-2">
                                                 <Checkbox
-                                                    id={`tool-${tool.id}`}
-                                                    checked={selectedTools.includes(tool.id)}
+                                                    id={`tool-${tool.index}`}
+                                                    checked={selectedTools.includes(tool.index)}
                                                     onCheckedChange={(checked) => {
                                                         if (checked) {
-                                                            setSelectedTools([...selectedTools, tool.id])
+                                                            setSelectedTools([...selectedTools, tool.index])
                                                         } else {
-                                                            setSelectedTools(selectedTools.filter((id) => id !== tool.id))
+                                                            setSelectedTools(selectedTools.filter((id) => id !== tool.index))
                                                         }
                                                     }}
                                                 />
-                                                <Label htmlFor={`tool-${tool.id}`} className="cursor-pointer">
-                                                    {tool.name}
+                                                <Label htmlFor={`tool-${tool.index}`} className="cursor-pointer">
+                                                    {tool.toolName}
                                                 </Label>
                                             </div>
                                         ))}

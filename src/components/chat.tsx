@@ -7,7 +7,9 @@ import type { CoreUserMessage } from 'ai';
 import { Send, Square as Stop, ChevronRight, ChevronLeft, FileText } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import Markdown from "react-markdown";
 import { Textarea } from "@/components/ui/textarea"
+import { ChatMessage } from "@/components/chat-message"
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card"
 import type { Chats } from './sidebar-history';
 import { ChatHeader } from '@/components/chat-header';
@@ -36,6 +38,7 @@ export function Chat({ id, selectedModelId, settings}: { id: string; selectedMod
     setInput,
     isLoading,
     stop,
+    data: dataStream,
   } = useChat({
     //api:"/api/chat/langchain",
     api:"/api/chat",
@@ -46,8 +49,7 @@ export function Chat({ id, selectedModelId, settings}: { id: string; selectedMod
     onError: (error) => {toast.error(`Something went wrong`);},
     onFinish: (message) => {
       saveChatRef.current = true;
-      // generateSuggestions({messages}).then(console.log)
-      console.log(message)
+      generateSuggestions({messages}).then(console.log)
     },
     onToolCall({ toolCall, }) {
       console.log('onToolCall', JSON.stringify(toolCall))
@@ -103,6 +105,11 @@ export function Chat({ id, selectedModelId, settings}: { id: string; selectedMod
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
 
+  useEffect(() => {
+    if (!dataStream?.length) return;
+    console.log('dataStream', dataStream)
+  }, [dataStream])
+
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value)
   }
@@ -136,39 +143,7 @@ export function Chat({ id, selectedModelId, settings}: { id: string; selectedMod
       </CardHeader>
       <CardContent className="flex-grow overflow-auto p-4">
         {messages.map((m:Message, index) => (
-          <div key={m.id} className={`mb-4 ${m.role === "user" ? "text-right" : "text-left"}`}>
-            <div className={`inline-block p-3 rounded-xl break-words overflow-wrap breakword max-w-full sm:max-w-[75%]
-                ${ m.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}
-                ${ m.role === "user" ? "rounded-tr-sm" : "rounded-tl-sm"}`
-              }>
-              {m.role === "assistant" && (
-                <>
-                {/* {m.parts.map((part, index) => {
-                  if (part.type === 'reasoning') {
-                    return <pre key={index}>{part.reasoning}</pre>;
-                  }
-                })} */}
-                {m.toolInvocations ? null : m.content}
-                {/* Attachments */}
-                {m.experimental_attachments && m.experimental_attachments.length > 0 && (
-                    <div className="mt-2 space-y-1">
-                      {m.experimental_attachments.map((attachment, attachmentIndex) => (
-                        <div
-                          key={attachmentIndex}
-                          onClick={()=>setIsArtifactsOpen(true)}
-                          className="flex items-center gap-1 p-1.5 bg-background/50 rounded cursor-pointer hover:bg-background/80 transition-colors"
-                        >
-                          <FileText className="h-4 w-4 text-primary" />
-                          <span className="text-sm">Attachment {attachmentIndex + 1}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </>
-              )}
-              {m.role === 'user' && (<>{m.content}</>)}
-            </div>
-          </div>
+          <ChatMessage key={index} message={m} isLast={index === messages.length - 1} />
         ))}
         {isLoading && (
           <div className="text-left">
