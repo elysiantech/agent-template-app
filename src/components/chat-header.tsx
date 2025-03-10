@@ -1,0 +1,211 @@
+'use client'
+
+import { useRouter } from 'next/navigation';
+import { models } from '@/ai/models';
+import { Plus, Settings } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { saveModelId, saveSettingsAction } from '@/app/actions'
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { useState } from "react"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
+import { Slider } from "@/components/ui/slider"
+import { Textarea } from "@/components/ui/textarea"
+import { set } from 'date-fns';
+
+
+const availableTools = [
+    { id: "web-search", name: "Web Search" },
+    { id: "code-interpreter", name: "Code Interpreter" },
+    { id: "image-generation", name: "Image Generation" },
+    { id: "data-analysis", name: "Data Analysis" },
+]
+
+export function ChatHeader({ selectedModelId, settings }: { selectedModelId: string, settings: Record<string, any> }) {
+    const router = useRouter()
+    const [isOpen, setIsOpen] = useState(false)
+    const [modelSelectOpen, setModelSelectOpen] = useState(false)
+    const [temperature, setTemperature] = useState(settings.temperature ?? 0.7)
+    const [maxTokens, setMaxTokens] = useState(settings.maxTokens ?? 2000)
+    const [maxSteps, setMaxSteps] = useState(settings.maxSteps ?? 5)
+    const [selectedTools, setSelectedTools] = useState<string[]>(settings.selectedTools ?? [])
+    const [displayToolMessages, setDisplayToolMessages] = useState(settings.displayToolMessages ?? true)
+    const [langchain, setLangchain] = useState(settings.langchain ?? true)
+
+
+    const saveSettings = async () => {
+        await saveSettingsAction({
+          temperature,
+          maxTokens,
+          maxSteps,
+          selectedTools,
+          displayToolMessages,
+          langchain
+        });
+
+        setIsOpen(false)
+        // Optional: Show a success toast
+    }
+
+    const handleNewChat = () => {
+        router.push('/');
+        router.refresh();
+    }
+
+    return (
+        <div className='flex bg-background items-center p-2 gap-2 w-full'>
+            <Button onClick={handleNewChat} size="icon" variant="outline">
+                <Plus className="h-4 w-4" />
+            </Button>
+            <Select
+                onValueChange={saveModelId}
+                open={modelSelectOpen}
+                defaultValue={selectedModelId}
+                onOpenChange={setModelSelectOpen}
+            >
+                <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Select a model" />
+                </SelectTrigger>
+                <SelectContent>
+                    {models.map((model) => (
+                        <SelectItem key={model.id} value={model.id}>
+                            {model.id}
+                            {modelSelectOpen && model.description && (
+                                <div className="text-xs text-muted-foreground">{model.description}</div>
+                            )}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+            <div className="flex-grow"></div>
+            <Sheet open={isOpen} onOpenChange={setIsOpen}>
+                <SheetTrigger asChild>
+                    <Button variant="outline" size="icon">
+                        <Settings className="h-4 w-4" />
+                        <span className="sr-only">Settings</span>
+                    </Button>
+                </SheetTrigger>
+                <SheetContent side="right">
+                    <SheetHeader>
+                        <SheetTitle>Settings</SheetTitle>
+                        <SheetDescription>Configure your chat preferences here.</SheetDescription>
+                    </SheetHeader>
+                    <div className="py-4 space-y-6">
+                        <Accordion type="single" collapsible className="w-full">
+                            <AccordionItem value="model-config">
+                                <AccordionTrigger>Model Configuration</AccordionTrigger>
+                                <AccordionContent>
+                                    <div className="space-y-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="system-instructions">System Instructions</Label>
+                                            <Textarea
+                                                id="system-instructions"
+                                                placeholder="Override system prompt..."
+                                                className="min-h-[100px]"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="temperature">Temperature: {temperature}</Label>
+                                            <Slider
+                                                id="temperature"
+                                                min={0}
+                                                max={1}
+                                                step={0.1}
+                                                value={[temperature]}
+                                                onValueChange={(value) => setTemperature(value[0])}
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label htmlFor="max-tokens">Max Tokens: {maxTokens}</Label>
+                                            <Slider
+                                                id="max-tokens"
+                                                min={100}
+                                                max={4000}
+                                                step={100}
+                                                value={[maxTokens]}
+                                                onValueChange={(value) => setMaxTokens(value[0])}
+                                            />
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label htmlFor="max-steps">Max Steps: {maxSteps}</Label>
+                                            <Slider
+                                                id="max-steps"
+                                                min={1}
+                                                max={10}
+                                                step={1}
+                                                value={[maxSteps]}
+                                                onValueChange={(value) => setMaxSteps(value[0])}
+                                            />
+                                        </div>
+                                    </div>
+                                </AccordionContent>
+                            </AccordionItem>
+
+                            <AccordionItem value="tool-selection">
+                                <AccordionTrigger>Tool Selection</AccordionTrigger>
+                                <AccordionContent>
+                                    <div className="space-y-2">
+                                        {availableTools.map((tool) => (
+                                            <div key={tool.id} className="flex items-center space-x-2">
+                                                <Checkbox
+                                                    id={`tool-${tool.id}`}
+                                                    checked={selectedTools.includes(tool.id)}
+                                                    onCheckedChange={(checked) => {
+                                                        if (checked) {
+                                                            setSelectedTools([...selectedTools, tool.id])
+                                                        } else {
+                                                            setSelectedTools(selectedTools.filter((id) => id !== tool.id))
+                                                        }
+                                                    }}
+                                                />
+                                                <Label htmlFor={`tool-${tool.id}`} className="cursor-pointer">
+                                                    {tool.name}
+                                                </Label>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </AccordionContent>
+                            </AccordionItem>
+
+                            <AccordionItem value="ui-settings">
+                                <AccordionTrigger>UI Settings</AccordionTrigger>
+                                <AccordionContent>
+                                    <div className="space-y-2">
+                                        <div className="flex items-center space-x-2">
+                                            <Checkbox
+                                                id="display-tool-messages"
+                                                checked={displayToolMessages}
+                                                onCheckedChange={(checked) => setDisplayToolMessages(!!checked)}
+                                            />
+                                            <Label htmlFor="display-tool-messages" className="cursor-pointer">
+                                                Display Tool Messages
+                                            </Label>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <Checkbox
+                                                id="display-use-langchain"
+                                                checked={langchain}
+                                                onCheckedChange={(checked) => setLangchain(!!checked)}
+                                            />
+                                            <Label htmlFor="display-tool-messages" className="cursor-pointer">
+                                                Langchain Orchestration
+                                            </Label>
+                                        </div>
+                                    </div>
+                                </AccordionContent>
+                            </AccordionItem>
+                        </Accordion>
+
+                        <Button className="w-full" onClick={saveSettings}>
+                            Save Settings
+                        </Button>
+                    </div>
+                </SheetContent>
+            </Sheet>
+        </div>
+    )
+}
