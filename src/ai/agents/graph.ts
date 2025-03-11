@@ -1,6 +1,5 @@
-import { ChatOpenAI } from "@langchain/openai";
-import { AIMessage, AIMessageChunk } from "@langchain/core/messages";
-import {RunnableConfig} from '@langchain/core/runnables';
+import { AIMessage, AIMessageChunk, ToolMessage, HumanMessage } from "@langchain/core/messages";
+import { RunnableConfig } from '@langchain/core/runnables';
 import { Annotation, StateGraph, START, END, MessagesAnnotation } from '@langchain/langgraph'
 import { ChatPromptTemplate, MessagesPlaceholder } from '@langchain/core/prompts'
 import { ToolNode } from '@langchain/langgraph/prebuilt'
@@ -25,8 +24,19 @@ const toolNode = async (state: typeof AgentState.State) => {
 }
 
 const agentNode = async (state: typeof AgentState.State, config: RunnableConfig) => {
+
+  const systemPrompt = `You are a helpful assistant.\n Today's date:${new Date().toString()}`;
+  // Get the last human message for the query
+  const humanMessages = state.messages.filter((message) => message instanceof HumanMessage);
+  const lastHumanMessage = humanMessages[humanMessages.length - 1];
+  const toolMessages = state.messages.filter((message) => message instanceof ToolMessage);
+  const lastToolMessage = toolMessages[toolMessages.length - 1];
+  if  (lastToolMessage?.name?.startsWith("retrieve") && lastToolMessage.artifact){
+    // retrieve should come from artifact
+  }
+  
   const prompt = ChatPromptTemplate.fromMessages([
-    ["system", `You are a helpful assistant.\n Today's date:${new Date().toString()}`],
+    ["system", systemPrompt],
     new MessagesPlaceholder("messages")
   ]);
   const llm = await getModelFromConfig(config)

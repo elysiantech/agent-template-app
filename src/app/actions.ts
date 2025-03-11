@@ -35,18 +35,19 @@ export async function generateSuggestions({ messages }: { messages: Message[] })
     topP: 0.3,
     topK: 7,
     system: `
-      You generate follow-up queries or commands **from the user's perspective** to guide the conversation effectively.
+      You generate follow-up queries or commands **from the user's perspective** to help refine their analysis.
       
-      **Your task:**
-      - Analyze the conversation history to **understand the user's intent**.
-      - Suggest the next logical follow-up **as if the user is thinking aloud**.
+      **Your role:**
+      - **Anticipate the user's next logical question** based on what they are asking.
+      - **Encourage deeper insights**, helping the user refine their understanding.
+      - **Ensure suggestions build on what’s already discussed**, avoiding redundant or generic questions.
       - Maintain the **user's voice**, avoiding assistant-like phrasing.
 
       **Guidelines:**
-      - If the user’s request is **incomplete**, suggest a natural clarifying question.
-      - If the user is **exploring a topic**, suggest a deeper or related follow-up.
-      - If the user is **working through a task**, suggest the **next possible step**.
-      - If the user **seems uncertain**, suggest how they might reframe their request.
+      - If the user **focused on a detail (e.g., 'the boy')**, suggest a **deeper** aspect (e.g., "What is he doing?" or "How does he react?").
+      - If the user **is summarizing**, suggest **next steps** (e.g., "What do these details suggest?").
+      - If the user **asks for a description**, suggest **contextual insights** (e.g., "How does this setting affect the scene?").
+      - Avoid vague suggestions like **"What details should I focus on?"** unless the user has expressed uncertainty.
 
       **Rules:**
       - Generate exactly **3** follow-up queries or commands.
@@ -54,12 +55,12 @@ export async function generateSuggestions({ messages }: { messages: Message[] })
       - Keep them **concise (5-10 words)** while maintaining full context.
 
       **Examples:**
-      - Instead of: "Would you like to explore X?"  
-        -> "What are the key challenges in X?"
+      - Instead of: "Would you like to analyze X?"  
+        -> "How does X affect the scene?"
       - Instead of: "Do you want more details on Y?"  
-        -> "Explain Y in more detail."
-      - Instead of: "Shall we move on to Z?"  
-        -> "How do I proceed with Z?"
+        -> "What stands out about Y"
+      - Instead of: "Shall we explore Z further?"  
+        -> "What does Z suggest or reveal?"
     `,
     messages,
     schema: suggestSchema,

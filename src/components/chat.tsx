@@ -40,8 +40,8 @@ export function Chat({ id, selectedModelId, settings}: { id: string; selectedMod
     stop,
     data: dataStream,
   } = useChat({
-    //api:"/api/chat/langchain",
-    api:"/api/chat",
+    api:"/api/chat/langchain",
+    //api:"/api/chat",
     body: { id, modelId: selectedModelId },
     sendExtraMessageFields: true,
     initialMessages:
@@ -142,8 +142,28 @@ export function Chat({ id, selectedModelId, settings}: { id: string; selectedMod
       </div>
       </CardHeader>
       <CardContent className="flex-grow overflow-auto p-4">
-        {messages.map((m:Message, index) => (
-          <ChatMessage key={index} message={m} isLast={index === messages.length - 1} />
+        {messages
+        .reduce<Message[]>((acc, message, index, arr) => {
+          if (message.content.trim() !== "") {
+            // Look back for toolInvocation in previous empty messages
+            const mergedMessage = { ...message };
+            for (let i = index - 1; i >= 0; i--) {
+              const prevMessage = arr[i];
+              if (prevMessage.content.trim() === "" && prevMessage.toolInvocations) {
+                mergedMessage.toolInvocations = [
+                  ...(mergedMessage.toolInvocations || []),
+                  ...prevMessage.toolInvocations,
+                ];
+              } else {
+                break; // Stop looking when encountering a non-empty message
+              }
+            }
+            acc.push(mergedMessage);
+          }
+          return acc;
+        }, [])
+        .map((message:Message, index) => (
+          <ChatMessage key={index} message={message} isLast={index === messages.length - 1} />
         ))}
         {isLoading && (
           <div className="text-left">

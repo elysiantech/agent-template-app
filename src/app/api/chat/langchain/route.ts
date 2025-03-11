@@ -1,6 +1,6 @@
 import { Message } from "ai";
-import { AIMessage, AIMessageChunk, ChatMessage, HumanMessage, } from "@langchain/core/messages";
-import { agent } from './graph'
+import { AIMessage, AIMessageChunk, ChatMessage, HumanMessage, ToolMessage } from "@langchain/core/messages";
+import { agent } from '@/ai/agents/graph'
 import { models } from '@/ai/models';
 import { formatDataStreamPart, Attachment} from "@ai-sdk/ui-utils"
 
@@ -22,6 +22,7 @@ export async function POST(request: Request) {
         configurable: { 
           userId,
           modelId,
+          assetId:'9f6b4345-ec13-4785-9570-8bf566e04aae',
           thread_id: "2",
         },
         recursionLimit: 50,
@@ -56,17 +57,21 @@ function toDataStream(stream: ReadableStream) {
         }
       } 
       else if (value.event === 'on_tool_end') {
+        const output = value.data.output as ToolMessage
         controller.enqueue(encoder.encode(
           formatDataStreamPart('tool_call', {
-            toolCallId: value.data.output.tool_call_id,
+            toolCallId: output.tool_call_id,
             toolName: value.name,
             args:JSON.parse(value.data.input.input),
           })))
           controller.enqueue(
             encoder.encode(
               formatDataStreamPart('tool_result', {
-                toolCallId: value.data.output.tool_call_id,
-                result: value.data.output.content,
+                toolCallId: output.tool_call_id,
+                result: {
+                  content:output.content,
+                  artifact: output.artifact,
+                }
               })
             )
           );

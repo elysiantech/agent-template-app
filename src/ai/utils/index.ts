@@ -1,0 +1,1 @@
+export { getModelFromConfig } from './utils';
