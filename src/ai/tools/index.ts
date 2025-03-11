@@ -1,9 +1,11 @@
 import { getWeather} from './weather'
 import { firecrawlTool } from './firecrawl';
+import { gmailTools } from './gmail'
 
 export const tools = [
     getWeather,
     firecrawlTool,
+    ...gmailTools
 ];
 
 export interface ToolInfo {
