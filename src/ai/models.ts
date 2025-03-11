@@ -40,7 +40,7 @@ export const models: Array<Model> = [
   {
     id: 'deepseek-v3',
     modelName: 'accounts/fireworks/models/deepseek-v3',
-    description: 'General-purpose model from DeepSeek.',
+    description: 'Strong Mixture-of-Experts (MoE) language model.',
     provider: 'fireworks',
   },
   {
@@ -57,7 +57,7 @@ export const models: Array<Model> = [
   },
   {
     id: 'deepseek-ai/DeepSeek-R1',
-    modelName: 'deepseek-ai/DeepSeek-R1', 
+    modelName: 'deepseek-ai/DeepSeek-R1-Distill-Llama-70B-free', 
     description: 'High-performance model from DeepSeek.',
     provider: 'togetherai',
   },

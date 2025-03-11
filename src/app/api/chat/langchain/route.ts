@@ -13,7 +13,6 @@ export async function POST(request: Request) {
     const model = models.find((model) => model.id === modelId);
     if (!model) return new Response('Model not found', { status: 404 });
     
-
     const eventStream = agent.streamEvents({
         messages: convertToLangChainMessages(messages)
       }, 
@@ -51,8 +50,10 @@ function toDataStream(stream: ReadableStream) {
       if (value.event === 'on_chat_model_stream') {
         const msg = chunk as AIMessageChunk
         if ((msg.tool_call_chunks?.length ?? 0) > 0) {
-				} else if (msg.content) 
+				} else if (msg.content) {
           controller.enqueue(encoder.encode(formatDataStreamPart("text", msg.content.toString())));
+          if (msg.additional_kwargs?.reasoning_content) console.log('reasoning', msg.additional_kwargs.reasoning_content)
+        }
       } 
       else if (value.event === 'on_tool_end') {
         controller.enqueue(encoder.encode(

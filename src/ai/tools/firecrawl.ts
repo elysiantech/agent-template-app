@@ -1,5 +1,5 @@
 import { RunnableConfig } from "@langchain/core/runnables";
-import { DynamicStructuredTool, tool } from "@langchain/core/tools";
+import { tool } from "@langchain/core/tools";
 import FirecrawlApp, { CrawlParams, ScrapeParams, CrawlStatusResponse } from "@mendable/firecrawl-js";
 import { z, ZodType } from "zod";
 
