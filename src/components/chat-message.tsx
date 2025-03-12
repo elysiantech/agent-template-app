@@ -2,6 +2,7 @@ import React, { memo, useMemo, useEffect, useState } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Message } from "ai/react";
+import { SparklesIcon } from "lucide-react"
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge"; // Assuming you have a Badge component
 
@@ -25,8 +26,14 @@ export const ChatMessage = memo(({ message, isLast }: ChatMessageProps) => {
   const handleToolClick = () =>  setShowToolResults(prev => !prev);
 
   return (
-    <div className={`mb-4 ${message.role === "user" ? "text-right" : "text-left"}`}>
-      <div
+    <div className={`mb-4 flex items-start ${message.role === "user" ? "justify-end" : "justify-start"}`}>
+      {message.role === "assistant" && (
+        <div className="size-8 flex items-center justify-center rounded-full ring-1 shrink-0 ring-border mr-2">
+          <SparklesIcon size={14} />
+        </div>
+      )}
+
+    <div
         className={`inline-block p-3 rounded-xl break-words max-w-full sm:max-w-[75%]
         ${message.role === "user" ? "bg-primary text-primary-foreground rounded-tr-sm" : "bg-muted text-muted-foreground rounded-tl-sm"}`}
       >

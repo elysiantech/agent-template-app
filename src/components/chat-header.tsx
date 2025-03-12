@@ -43,7 +43,9 @@ export function ChatHeader({ selectedModelId, settings }: { selectedModelId: str
     useEffect(() => {
         getModels().then(setModels)
         getAvailableToolsInfo().then(setAvailabeTools)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
+    
     const handleNewChat = () => {
         router.push('/');
         router.refresh();

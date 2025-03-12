@@ -17,5 +17,9 @@ export default async function Page(props: { params: Promise<any> }) {
     } catch (error) {
     }
   }
-  return <PreviewChat id={id} selectedModelId={selectedModelId} settings={parsedSettings}/>;
+  return ( 
+    <main className="flex flex-col h-screen w-full overflow-hidden">
+      <PreviewChat key={id} id={id} selectedModelId={selectedModelId} settings={parsedSettings}/>
+    </main>
+  )
 }

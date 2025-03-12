@@ -4,7 +4,7 @@ import type React from "react"
 import { useRef, useEffect, useState } from "react"
 import { Message, useChat } from "ai/react";
 import type { CoreUserMessage } from 'ai';
-import { Send, Square as Stop, ChevronRight, ChevronLeft, FileText } from "lucide-react"
+import { Send, Square as Stop, ChevronRight, ChevronLeft } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -120,6 +120,8 @@ export function Chat({ id, selectedModelId, settings}: { id: string; selectedMod
   const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
+
+      if (isLoading) toast.error('Please wait for the model to finish its response!');
       if (isLoading || !input) return;
       handleSubmit(e as unknown as React.FormEvent<HTMLFormElement>, { experimental_attachments: undefined});
     }
@@ -127,7 +129,7 @@ export function Chat({ id, selectedModelId, settings}: { id: string; selectedMod
 
   return (
     <div className="flex h-full w-full gap-2 transition-all duration-300 ease-in-out">
-    <Card className="flex flex-col h-full w-full">
+    <Card className="flex flex-col h-full w-full mx-6">
       <CardHeader>
       <div className="flex items-center justify-between w-full">
       <ChatHeader selectedModelId={selectedModelId} settings={settings}/>
@@ -177,7 +179,7 @@ export function Chat({ id, selectedModelId, settings}: { id: string; selectedMod
         )}
         <div ref={messagesEndRef} />
       </CardContent>
-      <CardFooter className="flex-shrink-0 sticky bottom-0 bg-card  z-10">
+      <CardFooter className="flex-shrink-0 sticky bottom-0 bg-card z-10">
         <div className="w-full space-y-2">
         {!isLoading && suggestions.length > 0 && (
             <div className="grid grid-cols-3 gap-2 pb-2">
@@ -185,7 +187,7 @@ export function Chat({ id, selectedModelId, settings}: { id: string; selectedMod
                 <Button
                   key={index}
                   variant="outline"
-                  className="w-full text-sm p-2 h-10 flex items-center justify-center text-center leading-tight"
+                  className="w-full text-sm p-4 h-10 flex items-center justify-center text-center leading-tight"
                   onClick={() => append({ id: uuidv4(), role:'user', content:text})}
                 >
                   <span className="whitespace-normal break-words">{text}</span>
@@ -198,6 +200,8 @@ export function Chat({ id, selectedModelId, settings}: { id: string; selectedMod
               value={input}
               onChange={handleInputChange}
               onKeyDown={onKeyDown}
+              rows={3}
+              autoFocus
               placeholder="Type your question here..."
               className="w-full h-full resize-none pr-10"
             />
@@ -205,6 +209,7 @@ export function Chat({ id, selectedModelId, settings}: { id: string; selectedMod
               type="submit"
               size="icon"
               className="absolute right-2 bottom-2 rounded-full"
+              disabled={!isLoading && input.length === 0}
               onClick={
                 isLoading
                   ? stop // Call stop directly if loading
@@ -219,10 +224,9 @@ export function Chat({ id, selectedModelId, settings}: { id: string; selectedMod
       </CardFooter>
     </Card>
     {/* Artifacts Canvas */}
-    <Card
-        className={cn(
+    <Card className={cn(
           "flex flex-col h-full transition-all duration-300 ease-in-out",
-          isArtifactsOpen ? "w-3/4" : "w-0 opacity-0 overflow-hidden",
+          isArtifactsOpen ? "w-3/4 mr-6" : "w-0 opacity-0 overflow-hidden",
         )}
       >
         {isArtifactsOpen && (
