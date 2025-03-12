@@ -1,10 +1,12 @@
 import { getWeather} from './weather'
 import { firecrawlTool } from './firecrawl';
+import { retrieveVideoTool } from './video'
 import { gmailTools } from './gmail'
 
 export const tools = [
     getWeather,
     firecrawlTool,
+    retrieveVideoTool,
     ...gmailTools
 ];
 
