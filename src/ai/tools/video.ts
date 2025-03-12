@@ -157,6 +157,7 @@ const createVisionTool = (
           const response = await llm.invoke(messages);
           return response.content || ""
         }
+        return ""
       },
       {
         name,
