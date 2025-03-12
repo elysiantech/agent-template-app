@@ -18,7 +18,7 @@ export default async function Page() {
     }
   }
   return (
-    <main className="flex flex-col h-screen w-full">
+    <main className="flex flex-col h-screen w-full overflow-hidden">
       <Chat key={id} id={id} selectedModelId={selectedModelId} settings={parsedSettings}/>
     </main>
   )

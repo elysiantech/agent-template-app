@@ -7,18 +7,20 @@ import type { CoreUserMessage } from 'ai';
 import { Send, Square as Stop, ChevronRight, ChevronLeft, FileText } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import Markdown from "react-markdown";
 import { Textarea } from "@/components/ui/textarea"
 import { ChatMessage } from "@/components/chat-message"
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card"
 import type { Chats } from './sidebar-history';
 import { ChatHeader } from '@/components/chat-header';
 import { toast } from 'sonner';
+import { v4 as uuidv4 } from 'uuid'
+
 import { useLocalStorage } from 'usehooks-ts';
 import { generateTitleFromUserMessage, generateSuggestions } from '@/app/actions';
   
 export function Chat({ id, selectedModelId, settings}: { id: string; selectedModelId: string; settings: Record<string, any> }) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const [ suggestions, setSuggestions] = useState<string[]>([])
   const [isArtifactsOpen, setIsArtifactsOpen] = useState(false)
   const [history, setHistory] = useLocalStorage<Chats>(
     `chats`,
@@ -37,6 +39,7 @@ export function Chat({ id, selectedModelId, settings}: { id: string; selectedMod
     input,
     setInput,
     isLoading,
+    append,
     stop,
     data: dataStream,
   } = useChat({
@@ -49,7 +52,7 @@ export function Chat({ id, selectedModelId, settings}: { id: string; selectedMod
     onError: (error) => {toast.error(`Something went wrong`);},
     onFinish: (message) => {
       saveChatRef.current = true;
-      generateSuggestions({messages}).then(console.log)
+      generateSuggestions({messages}).then(setSuggestions)
     },
     onToolCall({ toolCall, }) {
       console.log('onToolCall', JSON.stringify(toolCall))
@@ -176,6 +179,20 @@ export function Chat({ id, selectedModelId, settings}: { id: string; selectedMod
       </CardContent>
       <CardFooter className="flex-shrink-0 sticky bottom-0 bg-card  z-10">
         <div className="w-full space-y-2">
+        {!isLoading && suggestions.length > 0 && (
+            <div className="grid grid-cols-3 gap-2 pb-2">
+              {suggestions.map((text, index) => (
+                <Button
+                  key={index}
+                  variant="outline"
+                  className="w-full text-sm p-2 h-10 flex items-center justify-center text-center leading-tight"
+                  onClick={() => append({ id: uuidv4(), role:'user', content:text})}
+                >
+                  <span className="whitespace-normal break-words">{text}</span>
+                </Button>
+              ))}
+            </div>
+          )}
           <div className="relative">
             <Textarea
               value={input}

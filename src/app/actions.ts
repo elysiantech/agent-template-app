@@ -66,8 +66,6 @@ export async function generateSuggestions({ messages }: { messages: Message[] })
     schema: suggestSchema,
   });
 
-  console.log("serverAction:", object);
-
   return object.suggestions;
 }
 
