@@ -8,8 +8,7 @@ export const maxDuration = 60;
 
 export async function POST(request: Request) {
   try {
-    const { messages, modelId, userId, ...options } = await request.json();
-    const {temperature, maxTokens } = options;
+    const { messages, modelId, userId, selectedTools, customInstructions } = await request.json();
     const model = models.find((model) => model.id === modelId);
     if (!model) return new Response('Model not found', { status: 404 });
     
@@ -23,6 +22,8 @@ export async function POST(request: Request) {
           userId,
           modelId,
           assetId:'9f6b4345-ec13-4785-9570-8bf566e04aae',
+          selectedTools,
+          customInstructions,
           thread_id: "2",
         },
         recursionLimit: 50,

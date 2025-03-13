@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { ChatMessage } from "@/components/chat-message"
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card"
 import type { Chats } from './sidebar-history';
-import { ChatHeader } from '@/components/chat-header';
+import { ChatHeader, Preset } from '@/components/chat-header';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid'
 
@@ -20,6 +20,7 @@ import { generateTitleFromUserMessage, generateSuggestions } from '@/app/actions
   
 export function Chat({ id, selectedModelId, settings}: { id: string; selectedModelId: string; settings: Record<string, any> }) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const [preset, setPreset] = useLocalStorage<Preset>("selected_preset", {id: "default", name: "Default", customInstructions: "",selectedTools: ["getWeather"],});
   const [ suggestions, setSuggestions] = useState<string[]>([])
   const [isArtifactsOpen, setIsArtifactsOpen] = useState(false)
   const [history, setHistory] = useLocalStorage<Chats>(
@@ -45,7 +46,7 @@ export function Chat({ id, selectedModelId, settings}: { id: string; selectedMod
   } = useChat({
     api:"/api/chat/langchain",
     //api:"/api/chat",
-    body: { id, modelId: selectedModelId },
+    body: { id, modelId: selectedModelId, selectedTools:preset.selectedTools, customInstructions:preset.customInstructions},
     sendExtraMessageFields: true,
     initialMessages:
       history?.chats.find((chat:any) => chat.id === id)?.messages || [],
@@ -132,7 +133,7 @@ export function Chat({ id, selectedModelId, settings}: { id: string; selectedMod
     <Card className="flex flex-col h-full w-full mx-6">
       <CardHeader>
       <div className="flex items-center justify-between w-full">
-      <ChatHeader selectedModelId={selectedModelId} settings={settings}/>
+      <ChatHeader selectedModelId={selectedModelId} onPresetChange={setPreset} />
       {!isArtifactsOpen && (
         <Button
           onClick={ ()=> setIsArtifactsOpen(true)}

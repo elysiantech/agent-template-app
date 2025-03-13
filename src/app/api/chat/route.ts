@@ -11,7 +11,8 @@ import { z } from "zod";
 
 export const maxDuration = 60;
 
-const tools = langchainTools.reduce((acc, toolDef) => {
+const tools = langchainTools.reduce((acc, tool) => {
+  const { tool:toolDef} = tool;
   const convertedTool = convertTool(toolDef);
   return { ...acc, ...convertedTool };
 }, {});
@@ -26,8 +27,7 @@ const modelProvider: Record<string, any> = {
 
 export async function POST(request: Request) {
   try {
-    const { messages, modelId, userId, ...options } = await request.json();
-    const {temperature, maxTokens, maxSteps } = options;
+    const { messages, modelId, userId, selectedTools, customInstructions } = await request.json();
     const model = models.find((model) => model.id === modelId);
     if (!model) return new Response('Model not found', { status: 404 });
     const provider = modelProvider[model.provider]
@@ -44,10 +44,12 @@ export async function POST(request: Request) {
         const result = streamText({
           model: provider(model.modelName),
           messages,
-          temperature: temperature || 0.7,
-          // maxTokens: maxTokens || 16384,
-          // maxSteps: maxSteps || 5,
-          system:`You are a helpful assistant.\n Today's date:${new Date().toString()}`,
+          system:`
+          You are a highly capable AI assistant with advanced reasoning and tool-usage abilities.
+          You adapt dynamically to user needs, whether analyzing content, generating insights, or assisting with technical tasks.
+          Use all available tools effectively before responding to ensure accuracy and completeness.
+          Today's date: ${new Date().toString()}
+          \n\n${customInstructions}`,
           onStepFinish:({ toolResults, toolCalls, finishReason }) =>{
           },
           tools,

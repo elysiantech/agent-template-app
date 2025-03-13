@@ -77,7 +77,7 @@ export const retrieveVideoTool = tool(
     return [content, metadata];
   },
   {
-    name: "retrieve_media",
+    name: "videoSearch",
     description: "Retrieves frames and captions from the video feed. Can retrieve by text query, audio transcriptions, or metadata based on filters or semantic search.",
     schema: searchDocumentsToolSchema,
     responseFormat: 'content_and_artifact',

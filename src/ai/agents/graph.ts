@@ -18,32 +18,36 @@ const shouldContinue = (state: typeof AgentState.State) => {
   return "false"
 }
 
-const toolNode = async (state: typeof AgentState.State) => {
+const getSelectedToolsFromConfig = ( config: RunnableConfig ) =>{
+  const { selectedTools } = config.configurable as { selectedTools?: string[] };
+  const agentTools = (selectedTools && selectedTools.length > 0)
+    ? tools.filter(tool => selectedTools.includes(tool.name)).map(({ tool }) => tool)
+    : tools.map(({ tool }) => tool); // all tools
+
+  return agentTools;
+};
+  
+const toolNode = async (state: typeof AgentState.State, config: RunnableConfig) => {
   const toolsWithState = [
     imageCaptioningTool(state),
     boundingBoxTool(state),
     objectDetectionTool(state),
   ]
-  const toolExecutor = new ToolNode([...tools, ...toolsWithState])
+  const agentTools = getSelectedToolsFromConfig(config)
+  const toolExecutor = new ToolNode([...agentTools, ...toolsWithState])
   const {messages} =  await toolExecutor.invoke(state)
   return { messages }
 }
 
 const agentNode = async (state: typeof AgentState.State, config: RunnableConfig) => {
 
-  // const systemPrompt = `You are a helpful assistant.\n Today's date:${new Date().toString()}`;
-  const { assetId } = config?.configurable as { assetId: string };
-  const systemPrompt = `
-  You are a proactive video content intelligence assistant with advanced vision capabilities. 
-  Your goal is to thoroughly understand and describe video content, even with limited initial information.
-  Use available tools to retrieve relevant video frames, audio transcripts, or audio descriptions as needed.
-  
-  Ensure you have retrieved relevant data before answering the user’s query.
-
-  Context Parameters:
-  Today's date:${new Date().toString()}
-  Video Asset ID: ${assetId}
+const systemPrompt = `
+  You are a highly capable AI assistant with advanced reasoning and tool-usage abilities.
+  You adapt dynamically to user needs, whether analyzing content, generating insights, or assisting with technical tasks.
+  Use all available tools effectively before responding to ensure accuracy and completeness.
+  Today's date: ${new Date().toString()}
   `;
+  const { assetId, customInstructions } = config?.configurable as { assetId: string, customInstructions?: string };
   // Get the last human message for the query
   const humanMessages = state.messages.filter((message) => message instanceof HumanMessage);
   const lastHumanMessage = humanMessages[humanMessages.length - 1];
@@ -53,12 +57,12 @@ const agentNode = async (state: typeof AgentState.State, config: RunnableConfig)
     boundingBoxTool(state),
     objectDetectionTool(state),
   ]
-
+  const agentTools = getSelectedToolsFromConfig(config)
   const llm = await getModelFromConfig(config)
-  const llmWithTools = llm.bindTools([...tools, ...toolsWithState]);
+  const llmWithTools = llm.bindTools([...agentTools, ...toolsWithState]);
   
   const prompt = ChatPromptTemplate.fromMessages([
-    ["system", systemPrompt],
+    ["system", `${systemPrompt}\n\n${customInstructions}`],
     new MessagesPlaceholder("messages")
   ]);
   const response = await prompt.pipe(llmWithTools).invoke({
