@@ -210,7 +210,7 @@ export function ChatHeader({ selectedModelId, onOpenArtifacts, onPresetChange, s
                         <span className="sr-only">Settings</span>
                     </Button>
                 </SheetTrigger>
-                <SheetContent side="right" className="w-[400px] sm:w-[540px] overflow-y-auto">
+                <SheetContent side="right" className="w-[400px] sm:w-[540px] overflow-y-auto p-4">
                     <SheetHeader>
                         <SheetTitle>Settings</SheetTitle>
                         <SheetDescription>Configure preferences here.</SheetDescription>
