@@ -29,28 +29,7 @@ const initialPresets: Preset[] = [
         name: "Default",
         customInstructions: "",
         selectedTools: ["firecrawl", "getWeather"],
-    },
-    {
-        id: "coding",
-        name: "Coding Assistant",
-        selectedTools: ["firecrawl"],
-        customInstructions: dedent(`You are now operating as a **coding assistant**.
-        Your focus is on **writing, debugging, and optimizing code** across various programming languages.
-        Generate **concise, correct, and well-structured code** with explanations **only when necessary**.
-        Follow best practices and provide **efficient, maintainable solutions**.
-        `),
-    },
-    {
-        id: "video",
-        name: "Video Intelligence",
-        selectedTools: ["firecrawl", "videoSearch"],
-        customInstructions: dedent(`
-        You are a proactive video content intelligence assistant with advanced vision capabilities.
-        Your goal is to **thoroughly understand and describe video content**, even with limited initial information.
-        Before answering user queries, **retrieve and analyze video frames, audio transcripts, or relevant metadata**.
-        Ensure your responses are based on **actual retrieved data**, and provide clear, structured insights.
-        `),
-    },
+    }
 ]
 
 interface ChatHeaderProps {
