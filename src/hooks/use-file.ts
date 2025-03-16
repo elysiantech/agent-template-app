@@ -73,7 +73,6 @@ export function useFileHandler() {
     }))
 
     setAttachments((prev) => [...prev, ...newAttachments])
-    toast.success(`Added ${files.length} attachment${files.length > 1 ? "s" : ""}`)
   }
 
   // Remove attachment

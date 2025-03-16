@@ -1,1 +1,1 @@
-export { getModelFromConfig } from './utils';
+export { getModelFromId, getPublicUrl } from './utils';

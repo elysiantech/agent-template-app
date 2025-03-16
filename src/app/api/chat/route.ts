@@ -12,10 +12,10 @@ import { z } from "zod";
 export const maxDuration = 60;
 
 const tools = langchainTools.reduce((acc, tool) => {
-  const { tool:toolDef} = tool;
+  const { tool: toolDef } = tool;
   const convertedTool = convertTool(toolDef);
   return { ...acc, ...convertedTool };
-}, {});
+}, {} as Record<string, any>); // Ensure it's an object
 
 const modelProvider: Record<string, any> = {
   openai: createOpenAI({apiKey:process.env.OPENAI_API_KEY}),
@@ -32,15 +32,15 @@ export async function POST(request: Request) {
     if (!model) return new Response('Model not found', { status: 404 });
     const provider = modelProvider[model.provider]
 
+    const agentTools =
+      selectedTools && selectedTools.length > 0
+        ? Object.fromEntries(Object.entries(tools).filter(([name]) => selectedTools.includes(name)))
+        : {};
+    
+    const currentMessage = messages[messages.length - 1]; 
+    const { experimental_attachments, toolInvocations } = currentMessage   
     return createDataStreamResponse({
       execute: (dataStream) => {
-        const currentMessage = messages[messages.length - 1];
-        const messageId = currentMessage.id;
-        dataStream.writeData({
-          type: 'user-message-id',
-          content: messageId,
-        });
-  
         const result = streamText({
           model: provider(model.modelName),
           messages,
@@ -50,10 +50,25 @@ export async function POST(request: Request) {
           Use all available tools effectively before responding to ensure accuracy and completeness.
           Today's date: ${new Date().toString()}
           \n\n${customInstructions}`,
-          onStepFinish:({ toolResults, toolCalls, finishReason }) =>{
+          onStepFinish:({ toolResults, toolCalls, finishReason }) =>{},
+          tools:{
+            ...agentTools,
+            askForConfirmation: {
+              description: 'Ask the user for confirmation.',
+              parameters: z.object({
+                message: z.string().describe('The message to ask for confirmation.'),
+              }),
+            },
+            authTool: {
+              description: "Request OAuth2 authentication from the user via a popup login.",
+              parameters: z.object({
+                provider: z.enum(["google", "github"]).describe("OAuth provider.")
+                .describe("The authentication provider the user will use."),
+              }),
+            }
           },
-          tools,
         });
+        dataStream.writeData({ type: 'title', content: "This is a data stream message"});
         result.mergeIntoDataStream(dataStream, {
           sendReasoning: true,
         });

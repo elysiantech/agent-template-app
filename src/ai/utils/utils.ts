@@ -4,11 +4,15 @@ import { ChatFireworks } from "@langchain/community/chat_models/fireworks"
 import { ChatDeepInfra } from "@langchain/community/chat_models/deepinfra"
 import { models, DEFAULT_MODEL_NAME } from '@/ai/models';
 
-export async function getModelFromConfig(
-    config: RunnableConfig
-): Promise<any> {
-    const { modelId } = config.configurable as { modelId: string };
-    const model = models.find((model) => model.id === modelId);
+import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+
+const s3Client = new S3Client({ region: process.env.AWS_REGION! });
+
+export const getPublicUrl = async (key:string) => getSignedUrl(s3Client, new GetObjectCommand({ Bucket: process.env.AWS_BUCKET, Key: key }), { expiresIn: 3600 })
+
+export async function getModelFromId(modelId:string): Promise<any> {
+   const model = models.find((model) => model.id === modelId);
     if (!model) throw 'Model not found'
     const { provider, modelName } = model;
     

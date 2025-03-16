@@ -3,7 +3,6 @@ import { firecrawlTool } from './firecrawl';
 import { retrieveVideoTool } from './video'
 import { gmailTools } from './gmail'
 
-
 export interface Tool {
     name: string;       // What the agent sees
     displayName: string; // User-friendly name
@@ -52,18 +51,3 @@ export function getToolsInfo() {
     }));
 }
 
-// export const tools = [
-//     getWeather,
-//     firecrawlTool,
-//     retrieveVideoTool,
-//     ...gmailTools
-// ];
-
-
-// export function getToolsInfo(): ToolInfo[] {
-//     return tools.map((tool, index) => ({
-//       index,
-//       toolName: tool.name,
-//       description: tool.description
-//     }));
-// }

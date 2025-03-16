@@ -3,14 +3,11 @@ import { BaseLanguageModelInput } from "@langchain/core/language_models/base";
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
 import { searchDocuments } from "@/ai/utils/opensearch";
-import { AIMessage, SystemMessage, ToolMessage, HumanMessage } from "@langchain/core/messages";
+import { SystemMessage, ToolMessage, HumanMessage } from "@langchain/core/messages";
 import { MessagesAnnotation } from '@langchain/langgraph'
-import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { getPublicUrl} from "@/ai/utils"
 import { ChatOpenAI } from "@langchain/openai";
 import { ChatFireworks } from "@langchain/community/chat_models/fireworks"
-
-const s3Client = new S3Client({ region: process.env.AWS_REGION! });
 
 const llm = new ChatOpenAI({ modelName: 'gpt-4o-mini', temperature: 0, verbose: false });
 const qwen2VL = new ChatFireworks({model:"accounts/fireworks/models/qwen2-vl-72b-instruct", apiKey: process.env.FIREWORKS_API_KEY})
@@ -126,11 +123,7 @@ const createVisionTool = (
               })
               .map(async (frame:any) => {
                 // Generate signed URL for the frame
-                const frameUrl = await getSignedUrl(
-                  s3Client,
-                  new GetObjectCommand({ Bucket: process.env.AWS_BUCKET, Key: frame.key }),
-                  { expiresIn: 3600 }
-                );
+                const frameUrl = await getPublicUrl(frame.kwy);
           
                 return {
                   timestamp: new Date(frame.timestamp * 1000).toISOString(), // Convert to ISO 8601

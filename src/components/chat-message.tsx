@@ -4,17 +4,12 @@ import remarkGfm from "remark-gfm";
 import { Message } from "ai/react";
 import { SparklesIcon } from "lucide-react"
 import Image from "next/image";
-import { Badge } from "@/components/ui/badge"; // Assuming you have a Badge component
-
 export type ChatMessageProps = {
   message: Message;
   isLast: boolean;
 };
 
-
 export const ChatMessage = memo(({ message, isLast }: ChatMessageProps) => {
-  const [showToolResults, setShowToolResults] = useState(false);
-
   const { thinkContent, cleanContent } = useMemo(() => {
     const thinkMatch = message.content.match(/<think>([\s\S]*?)(?:<\/think>|$)/);
     return {
@@ -22,9 +17,7 @@ export const ChatMessage = memo(({ message, isLast }: ChatMessageProps) => {
       cleanContent: message.content.replace(/<think>[\s\S]*?(?:<\/think>|$)/g, "").trim(),
     };
   }, [message.content, message.role]);
-  const toolResults = useMemo(() => message.toolInvocations?.filter(t => t.state === "result") || [], [message.toolInvocations]);
-  const handleToolClick = () =>  setShowToolResults(prev => !prev);
-
+  
   return (
     <div className={`mb-4 flex items-start ${message.role === "user" ? "justify-end" : "justify-start"}`}>
       {message.role === "assistant" && (
@@ -60,23 +53,6 @@ export const ChatMessage = memo(({ message, isLast }: ChatMessageProps) => {
         <div className="mt-2">
           <Markdown remarkPlugins={[remarkGfm]}>{cleanContent}</Markdown>
         </div>
-        {/* Tool Invocation Badge */}
-        {toolResults.length > 0 && (
-          <div className="mt-2">
-            <Badge className="cursor-pointer" onClick={handleToolClick}>
-              {showToolResults ? "Hide Tool Results" : `View ${toolResults.length} Tool Results`}
-            </Badge>
-            {showToolResults && (
-              <div className="mt-2 p-2 bg-gray-100 rounded">
-                {toolResults.map((tool, index) => (
-                  <div key={index} className="text-sm text-gray-700">
-                    <strong>{tool.toolName}:</strong> {JSON.stringify(tool.result)}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );
