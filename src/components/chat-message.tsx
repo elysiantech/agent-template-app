@@ -4,6 +4,9 @@ import remarkGfm from "remark-gfm";
 import { Message } from "ai/react";
 import { SparklesIcon } from "lucide-react"
 import Image from "next/image";
+import { ToolMessage } from "@/components/tool-message"
+
+
 export type ChatMessageProps = {
   message: Message;
   isLast: boolean;
@@ -53,6 +56,8 @@ export const ChatMessage = memo(({ message, isLast }: ChatMessageProps) => {
         <div className="mt-2">
           <Markdown remarkPlugins={[remarkGfm]}>{cleanContent}</Markdown>
         </div>
+        {/* Render other tool messages that are not confirmation/auth */}
+        {message.toolInvocations?.map((tool, idx) => <ToolMessage key={idx} toolInvocations={[tool]} />)}
       </div>
     </div>
   );

@@ -60,12 +60,11 @@ export function ChatHeader({ selectedModelId, onOpenArtifacts, onPresetChange, s
       }, [selectedPreset, presets]);
   
       const savePreset = () => {
-          setPresets(
-              presets.map((p) =>
-                  p.id === selectedPreset.id ? { ...p, selectedTools: selectedPreset.selectedTools, customInstructions: selectedPreset.customInstructions } : p
-              )
-          );
-      };
+        setPresets((prevPresets) => {
+            const otherPresets = prevPresets.filter((p) => p.id !== selectedPreset.id);
+            return [...otherPresets, { ...selectedPreset, selectedTools, customInstructions: selectedPreset.customInstructions }];
+        });
+    };
 
 
     useEffect(() => {

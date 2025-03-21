@@ -12,7 +12,6 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { ChatMessage } from "@/components/chat-message"
-import { ToolMessage } from "@/components/tool-message"
 import { ConfirmationTool } from "@/components/confirm-tool"
 import { AuthTool } from "@/components/auth-tool"
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card"
@@ -47,7 +46,7 @@ export function Chat({ id, selectedModelId, settings }: { id: string; selectedMo
     data: dataStream,
     addToolResult
   } = useChat({
-    //api:"/api/chat/langchain",
+    //api: "/api/chat/langchain",
     api: "/api/chat",
     body: { id, modelId: selectedModelId, selectedTools: preset.selectedTools, customInstructions: preset.customInstructions },
     sendExtraMessageFields: true,
@@ -122,7 +121,7 @@ export function Chat({ id, selectedModelId, settings }: { id: string; selectedMo
   }, [dataStream])
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+    messagesEndRef.current?.scrollIntoView({ behavior: "instant" })
   }, [messages])
 
   const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -194,43 +193,46 @@ export function Chat({ id, selectedModelId, settings }: { id: string; selectedMo
               </div>
             ) : (
               <>
-              {messages.map((message: Message, index: number) => {
-                  // If toolInvocations exist, display corresponding tool component(s)
-                  if (message.toolInvocations && message.toolInvocations.length > 0) {
-                    return (
-                      <div key={message.id}>
-                        {message.toolInvocations.map(({ toolCallId, toolName, args, result }: any) => {
-                          if (toolName === 'askForConfirmation') {
-                            return (
-                              <ConfirmationTool key={toolCallId}
-                                question={args?.message || "Please confirm this action?"}
-                                onConfirm={(result) => addToolResult({ toolCallId, result: result ? "yes" : "no" })}
-                                disabled={!!result}
-                              />
-                            );
-                          } else if (toolName === "authTool") {
-                            return (
-                              <AuthTool  key={toolCallId} provider={args?.provider || "Google"} status={result}
-                                onAuthSuccess={(token) => addToolResult({ toolCallId, result: `Authenticated: ${token}` })}
-                                onAuthFailure={(error) => addToolResult({ toolCallId, result: `Authentication failed: ${error}` })}
-                                disabled={!!result}
-                              />
-                            );
-                          }
-                        })}
-                        {/* Render other tool messages that are not confirmation/auth */}
-                        {message.toolInvocations
-                          .filter((tool) => tool.toolName !== 'askForConfirmation' && tool.toolName !== "authTool")
-                          .map((tool, idx) => <ToolMessage key={idx} toolInvocations={[tool]} />)}
-                      </div>
-                    );
-                  }
-                  return (
-                    <ChatMessage key={message.id} message={message} isLast={index === messages.length - 1} />
+                {messages.map((message: Message, index: number) => {
+                  const toolInvocations = message.toolInvocations || [];
+                  const confirmTool: any = toolInvocations.find((tool) => tool?.toolName === "askForConfirmation") || null;
+                  const authTool: any = toolInvocations.find((tool) => tool?.toolName === "authTool") || null;
+                  const otherToolInvocations = toolInvocations.filter(
+                    (tool) => !["askForConfirmation", "authTool"].includes(tool.toolName)
                   );
-                })
-              }
-            </>)}
+                  return (
+                    <div key={message.id}>
+                      {confirmTool && (
+                        <ConfirmationTool
+                          key={confirmTool.toolCallId}
+                          question={confirmTool.args?.message || "Please confirm this action?"}
+                          onConfirm={(result) =>
+                            addToolResult({ toolCallId: confirmTool.toolCallId, result: confirmTool.result ? "yes" : "no" })
+                          }
+                          disabled={!!confirmTool.result}
+                        />
+                      )}
+
+                      {authTool && (
+                        <AuthTool
+                          key={authTool.toolCallId}
+                          provider={authTool.args?.provider || "Google"}
+                          status={authTool.result}
+                          onAuthSuccess={(token) => addToolResult({ toolCallId: authTool.toolCallId, result: `Authenticated: ${token}` })}
+                          onAuthFailure={(error) => addToolResult({ toolCallId: authTool.toolCallId, result: `Authentication failed: ${error}` })}
+                          disabled={!!authTool.result}
+                        />
+                      )}
+                      {/* Skip empty assistant message with no tool invocations */}
+                      {message.role === 'assistant' &&
+                        message.content.trim() === '' && otherToolInvocations.length === 0 ? null : (
+                        <ChatMessage key={message.id} message={{ ...message, toolInvocations: otherToolInvocations }} isLast={index === messages.length - 1} />
+                      )}
+                    </div>
+                  )
+                })}
+              </>
+            )}
             {isLoading && (
               <div className="text-left">
                 <div className="inline-block p-3 rounded-xl bg-muted text-muted-foreground rounded-tl-sm">

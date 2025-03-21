@@ -2,6 +2,7 @@ import { getWeather} from './weather'
 import { firecrawlTool } from './firecrawl';
 import { retrieveVideoTool } from './video'
 import { gmailTools } from './gmail'
+import { exaSearchTool } from './websearch'
 
 export interface Tool {
     name: string;       // What the agent sees
@@ -19,10 +20,10 @@ export const tools: Tool[] = [
         tool: getWeather
     },
     {
-        displayName: "Web Scraper",
-        name: firecrawlTool.name,
+        displayName: "Web Search",
+        name: exaSearchTool.name,
         description: "Search the web for current information",
-        tool: firecrawlTool
+        tool: exaSearchTool
     },
     {
         displayName: "Retrieve Video Frames",

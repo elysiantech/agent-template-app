@@ -1,7 +1,7 @@
 'use server';
 
 import { createOpenAI } from '@ai-sdk/openai';
-import { type CoreUserMessage, generateText, generateObject, Message } from 'ai';
+import { type CoreUserMessage, generateText, generateObject, Message, convertToCoreMessages } from 'ai';
 import { cookies } from 'next/headers';
 import { models, Model } from '@/ai/models'
 import  { getToolsInfo  } from '@/ai/tools'
@@ -28,6 +28,10 @@ export async function saveSettingsAction(settings: Record<string, any>) {
 export async function generateSuggestions({ messages }: { messages: Message[] }) {
   const openai = createOpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
+  const filteredMessages = messages.filter(
+    (msg) => !(msg.toolInvocations && msg.toolInvocations.length > 0)
+  );
+    
   const { object } = await generateObject({
     model: openai("gpt-4o-mini"),
     temperature: 0,
@@ -62,7 +66,7 @@ export async function generateSuggestions({ messages }: { messages: Message[] })
       - Instead of: "Shall we explore Z further?"  
         -> "What does Z suggest or reveal?"
     `,
-    messages,
+    messages:filteredMessages,
     schema: suggestSchema,
   });
 

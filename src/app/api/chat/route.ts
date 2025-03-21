@@ -50,7 +50,6 @@ export async function POST(request: Request) {
           Use all available tools effectively before responding to ensure accuracy and completeness.
           Today's date: ${new Date().toString()}
           \n\n${customInstructions}`,
-          onStepFinish:({ toolResults, toolCalls, finishReason }) =>{},
           tools:{
             ...agentTools,
             askForConfirmation: {
